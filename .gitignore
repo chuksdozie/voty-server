@@ -1,0 +1,3 @@
+##these files were ignored during upload due to SENSITIVITY and SIZE
+.env
+node_modules
