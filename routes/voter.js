@@ -12,27 +12,18 @@ const {
   getAllOrganizations,
 } = require("../controllers/auth");
 const { addNewCandidateQuery } = require("../controllers/candidate");
+const { createNewVoter } = require("../controllers/voter");
 
-/* Create New Candidate. */
-router.post("/new-candidate", async function (req, res, next) {
+/* Create New Voter. */
+router.post("/new-voter", async function (req, res, next) {
   try {
-    const {
+    const { first_name, last_name, email, phonenumber, address } = req.body;
+    const data = await createNewVoter({
       first_name,
       last_name,
-      candidate_id,
-      party,
-      picture,
-      logo,
-      position,
-    } = req.body;
-    const data = await addNewCandidateQuery({
-      first_name,
-      last_name,
-      candidate_id,
-      party,
-      picture,
-      logo,
-      position,
+      email,
+      phonenumber,
+      address,
     });
     res.status(httpStatus.CREATED).json({ data });
     return;

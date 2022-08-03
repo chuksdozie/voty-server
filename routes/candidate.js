@@ -11,7 +11,7 @@ const {
   changePasswordUserById,
   getAllOrganizations,
 } = require("../controllers/auth");
-const { addNewCandidateQuery } = require("../controllers/candidate");
+const { createNewCandidate } = require("../controllers/candidate");
 
 /* Create New Candidate. */
 router.post("/new-candidate", async function (req, res, next) {
@@ -25,7 +25,7 @@ router.post("/new-candidate", async function (req, res, next) {
       logo,
       position,
     } = req.body;
-    const data = await addNewCandidateQuery({
+    const data = await createNewCandidate({
       first_name,
       last_name,
       candidate_id,

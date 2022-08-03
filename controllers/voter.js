@@ -4,6 +4,11 @@ const {
   getCandidateByCandidateIdQuery,
   getCandidateByIdQuery,
   updateCandidateByIdQuery,
+  addNewVoterQuery,
+  getVotersByEmailQuery,
+  getAllVotersQuery,
+  getVoterByIdQuery,
+  updateVoterByIdQuery,
   signUpOrganizationQuery,
   getAllOrganizationsQuery,
   getOrganizationByEmailQuery,
@@ -20,7 +25,7 @@ var httpStatus = require("http-status");
 var { APIError } = require("../config/error");
 const argon2 = require("argon2");
 var jwt = require("jsonwebtoken");
-const { now } = require("../utils");
+const { now, generateVoterId } = require("../utils");
 
 const emailVerificationSetup = (email) => {
   // THIS IS TO GENERATE VERIFICATION LINK
@@ -36,77 +41,96 @@ const emailVerificationSetup = (email) => {
   return { reciever, mailContent, mailSubject };
 };
 
-const notifyAdmin = (candidate_name, party) => {
-  const reciever = process.env.ADMIN_EMAIL;
-  const mailSubject = "New Candidate Notification";
-  const mailContent = `<p>A candidate named ${candidate_name} from ${party} has been added to the voty platform</p>`;
+const notifyVoter = (voter_email, voter_name, generated_id) => {
+  const reciever = voter_email;
+  const mailSubject = "Welcome to Voty";
+  const mailContent = `<p>Hello ${voter_name}, from ${party} has been added to the voty platform</p>
+                        <p>Congratulations!! You have been registered on the voty platform. Please use this ID when the time for voting comes</p>
+                        <h1>${generated_id}</h1>
+                        <h5>Please remember that vote buying or selling is a crime</h5>`;
 
   return { reciever, mailContent, mailSubject };
 };
 
-const createNewCandidate = async (payload) => {
+const createNewVoter = async (payload) => {
   try {
     // "id",
     // "first_name",
     // "last_name",
-    // "candidate_id",
-    // "party",
-    // "picture",
-    // "logo",
-    // "position",
-    // "number_of_votes",
+    // "voter_id",
+    // "email",
+    // "phonenumber",
+    // "address",
+    // "voted",
     // "verified",
     // "created_at",
     // "updated_at",
     // "voted_at",
-    // "deleted_at"
+    // "deleted_at",
     if (!payload.first_name) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter the candidate's first name",
-        errors: "No candidate's first name",
+        message: "Please enter the voter's first name",
+        errors: "No voter's first name",
       });
     }
     if (!payload.last_name) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter the candidate's last name",
-        errors: "No candidate's last name",
+        message: "Please enter the voter's last name",
+        errors: "No voter's last name",
       });
     }
-    if (!payload.candidate_id) {
+    if (!payload.email) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter an ID for this candidate",
-        errors: "No candidate ID",
+        message: "Please enter an email for this voter",
+        errors: "No voter email",
       });
     }
-
-    if (!payload.party) {
+    if (!payload.phonenumber) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter the candidate's party",
-        errors: "No candidate party",
+        message: "Please enter a phone number for this",
+        errors: "No voter phone number",
       });
     }
 
-    // const emailSetUp = await emailVerificationSetup(payload.email);
+    if (!payload.address) {
+      throw new APIError({
+        status: httpStatus.BAD_REQUEST,
+        message: "Please enter the voter's address",
+        errors: "No voter's address",
+      });
+    }
 
-    const candidate = await getCandidateByCandidateIdQuery(
-      payload.candidate_id
+    const voter = await getVotersByEmailQuery(payload.email);
+
+    if (voter.length) {
+      throw new APIError({
+        status: httpStatus.BAD_REQUEST,
+        message: "A voter with this email already exists",
+        errors: "Voter already exists",
+      });
+    }
+
+    const generated_voter_id = generateVoterId();
+    const voter_fullname = `${payload.first_name} ${payload.last_name}`;
+    const notificationDetails = notifyVoter(
+      payload.email,
+      voter_fullname,
+      generated_voter_id
     );
 
-    if (candidate.length) {
-      throw new APIError({
-        status: httpStatus.BAD_REQUEST,
-        message: "This Candidate ID is already in use",
-        errors: "Candidate ID already exists",
-      });
-    }
-
-    const candidate_fullname = `${payload.first_name} ${payload.last_name}`;
-    const notificationDetails = notifyAdmin(candidate_fullname, payload.party);
-    const [data] = await addNewCandidateQuery(payload);
+    const voterDetails = {
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      voter_id: generated_voter_id,
+      email: payload.email,
+      phonenumber: payload.phonenumber,
+      address: payload.address,
+    };
+    const [data] = await addNewVoterQuery(voterDetails);
     sendMyMail(
       notificationDetails.reciever,
       notificationDetails.mailSubject,
@@ -400,7 +424,7 @@ const changePasswordUserById = async (user, payload) => {
 };
 
 module.exports = {
-  createNewCandidate,
+  createNewVoter,
   signUpOrganization,
   verifyEmail,
   loginOrganization,

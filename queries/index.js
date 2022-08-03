@@ -93,7 +93,7 @@ const updateCandidateByIdQuery = async (id, payload) => {
 // "voted_at",
 // "deleted_at",
 
-// creating a candidate
+// creating a voter
 const addNewVoterQuery = async (payload) => {
   return sql`INSERT INTO voters ${sql(
     payload,
@@ -106,18 +106,24 @@ const addNewVoterQuery = async (payload) => {
   )}RETURNING *`;
 };
 
-// get all candidates details
+// get all voters details
 const getAllVotersQuery = async () => {
   return await sql`SELECT * FROM voters WHERE deleted_at IS NULL`;
 };
 
-// get candidates details by id
+// get voter details by email
+const getVotersByEmailQuery = async (email) => {
+  return await sql`SELECT * FROM voters
+  WHERE email = ${email} AND deleted_at IS NULL`;
+};
+
+// get voter details by id
 const getVoterByIdQuery = async (id) => {
   return await sql`SELECT * FROM voters
   WHERE id = ${id} AND deleted_at IS NULL`;
 };
 
-// update candidate details by id
+// update voter details by id
 const updateVoterByIdQuery = async (id, payload) => {
   return await sql`UPDATE voters SET ${sql(
     payload,
@@ -396,6 +402,7 @@ module.exports = {
   getCandidateByIdQuery,
   updateCandidateByIdQuery,
   addNewVoterQuery,
+  getVotersByEmailQuery,
   getAllVotersQuery,
   getVoterByIdQuery,
   updateVoterByIdQuery,
