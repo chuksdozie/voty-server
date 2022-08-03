@@ -123,6 +123,12 @@ const getVoterByIdQuery = async (id) => {
   WHERE id = ${id} AND deleted_at IS NULL`;
 };
 
+// get voter details by voter id
+const getVoterByVoterIdQuery = async (id) => {
+  return await sql`SELECT * FROM voters
+  WHERE voter_id = ${id} AND deleted_at IS NULL`;
+};
+
 // update voter details by id
 const updateVoterByIdQuery = async (id, payload) => {
   return await sql`UPDATE voters SET ${sql(
@@ -405,6 +411,7 @@ module.exports = {
   getVotersByEmailQuery,
   getAllVotersQuery,
   getVoterByIdQuery,
+  getVoterByVoterIdQuery,
   updateVoterByIdQuery,
   signUpOrganizationQuery,
   getAllOrganizationsQuery,

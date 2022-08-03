@@ -6,6 +6,7 @@ const {
   updateCandidateByIdQuery,
   addNewVoterQuery,
   getVotersByEmailQuery,
+  getVoterByVoterIdQuery,
   getAllVotersQuery,
   getVoterByIdQuery,
   updateVoterByIdQuery,
@@ -146,65 +147,27 @@ const createNewVoter = async (payload) => {
   }
 };
 
-const signUpOrganization = async (payload) => {
+const verifyVoter = async (payload) => {
   try {
-    if (!payload.name) {
+    if (!payload.voter_id) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter an organization name",
-        errors: "No organization name",
+        message: "Please enter a voter's id",
+        errors: "No voter's id",
       });
     }
 
-    if (!payload.email) {
+    const voter = await getVoterByVoterIdQuery(payload.voter_id);
+
+    if (!voter) {
       throw new APIError({
         status: httpStatus.BAD_REQUEST,
-        message: "Please enter an email address",
-        errors: "No organization email address",
+        message: "This Voter does not exist",
+        errors: "This Voter does not exist",
       });
     }
 
-    if (!payload.password) {
-      throw new APIError({
-        status: httpStatus.BAD_REQUEST,
-        message: "Please enter a password",
-        errors: "No password input",
-      });
-    }
-
-    const emailSetUp = await emailVerificationSetup(payload.email);
-
-    const orgEmail = await getOrganizationByEmailQuery(payload.email);
-    const orgName = await getOrganizationByNameQuery(payload.name);
-
-    if (orgName.length) {
-      throw new APIError({
-        status: httpStatus.BAD_REQUEST,
-        message: "This Company Name is already in use",
-        errors: "Company Name already exists",
-      });
-    }
-    if (orgEmail.length) {
-      throw new APIError({
-        status: httpStatus.BAD_REQUEST,
-        message: "This email address is already in use, please login instead.",
-        errors: "Email address already exists",
-      });
-    }
-
-    const hashedpassword = await argon2.hash(payload.password);
-    const details = {
-      name: payload.name,
-      email: payload.email,
-      password: hashedpassword,
-    };
-    const [data] = await signUpOrganizationQuery(details);
-    sendMyMail(
-      emailSetUp.reciever,
-      emailSetUp.mailSubject,
-      emailSetUp.mailContent
-    );
-    return data;
+    return voter;
   } catch (error) {
     throw new APIError({
       status: error.status || httpStatus.INTERNAL_SERVER_ERROR,
@@ -425,7 +388,7 @@ const changePasswordUserById = async (user, payload) => {
 
 module.exports = {
   createNewVoter,
-  signUpOrganization,
+  verifyVoter,
   verifyEmail,
   loginOrganization,
   getAllOrganizations,

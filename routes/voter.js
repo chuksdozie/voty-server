@@ -5,6 +5,7 @@ const { isLoggedIn } = require("../middlewares/index");
 
 const {
   signUpOrganization,
+
   verifyEmail,
   loginOrganization,
   updateOrganizationById,
@@ -12,7 +13,7 @@ const {
   getAllOrganizations,
 } = require("../controllers/auth");
 const { addNewCandidateQuery } = require("../controllers/candidate");
-const { createNewVoter } = require("../controllers/voter");
+const { createNewVoter, verifyVoter } = require("../controllers/voter");
 
 /* Create New Voter. */
 router.post("/new-voter", async function (req, res, next) {
@@ -32,10 +33,10 @@ router.post("/new-voter", async function (req, res, next) {
   }
 });
 
-router.get("/verify/:token", async (req, res) => {
+router.get("/verify", async (req, res) => {
   try {
-    const token = req.params.token;
-    const data = await verifyEmail(token);
+    const { voter_id } = req.body;
+    const data = await verifyVoter(voter_id);
     res.status(httpStatus.CREATED).json({ data });
     return;
   } catch (error) {
