@@ -1,6 +1,6 @@
-# profiler
+# Voty
 
-eRecord Keeping for SME's
+A national presidential elections voting app
 
 #
 
